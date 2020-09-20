@@ -50,9 +50,9 @@ export default {
     },
     getTasksIndexUrl() {
       if (this.$route.params.status) {
-        return `tasks/?all&project_category_id=${this.id}&status=${this.$route.params.status}`;
+        return `api/tasks/?all&project_category_id=${this.id}&status=${this.$route.params.status}`;
       }
-      return `tasks/?all&project_category_id=${this.id}`;
+      return `api/tasks/?all&project_category_id=${this.id}`;
     },
     getBreadcrumbs() {
       const items = [

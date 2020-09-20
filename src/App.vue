@@ -1,6 +1,6 @@
 <template>
   <div id="q-app" :class="$color('textMain')">
-    <q-bar class="q-electron-draggable">
+    <q-bar class="q-electron-draggable" v-if="this.$q.platform.is.electron">
       <q-icon name="map"/>
 
       <div>TMGR</div>
@@ -21,7 +21,9 @@
       @enter="enter"
       @afterEnter="afterEnter"
     >
-      <q-scroll-area class="absolute-position-off" style="min-height: 85vh">
+      <q-scroll-area :style="{
+        height: bodyHeight + 'px'
+      }">
         <div>
           <router-view :key="$route.path"></router-view>
         </div>
@@ -38,15 +40,26 @@
     data() {
       return {
         prevHeight: 0,
+        bodyHeight: 1500,
         transitionName: DEFAULT_TRANSITION,
       };
     },
     computed: {
       navbarHidden() {
         return this.$route.name !== "Index";
-      },
+      }
     },
     methods: {
+      getBodyHeight () {
+        return this.getOffsetHeightOfElement('.absolute.full-width') - this.getOffsetHeightOfElement('[role=toolbar]') - this.getOffsetHeightOfElement('nav')
+      },
+      getOffsetHeightOfElement (selector) {
+        const el = document.querySelector(selector)
+        if (!el) {
+          return 0
+        }
+        return el.offsetHeight
+      },
       minimize () {
         if (process.env.MODE === 'electron') {
           this.$q.electron.remote.BrowserWindow.getFocusedWindow().minimize()
@@ -97,6 +110,15 @@
           this.$store.commit("user", data);
         });
       },
+      initBodyHeight () {
+        setTimeout(() => {
+          try {
+            this.bodyHeight = this.getBodyHeight()
+          } catch (e) {
+            setTimeout(() => this.bodyHeight = this.getBodyHeight(), 1000)
+          }
+        }, 500)
+      }
     },
     async created() {
       document.querySelector("body").className = this.$color("bgBody");
@@ -113,8 +135,14 @@
 
         next();
       });
+      this.$router.afterEach(() => {
+        this.initBodyHeight()
+      })
       await this.loadUser();
     },
+    mounted() {
+      this.initBodyHeight()
+    }
   };
 </script>
 
